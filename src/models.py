@@ -49,7 +49,7 @@ class ModelTrainer:
         preds = (proba >= 0.5).astype(int)
 
         return {
-            'Modelo':   name,
+            'Model':    name,
             'Accuracy': accuracy_score(y_test, preds),
             'ROC-AUC':  roc_auc_score(y_test, proba),
             'Log Loss': log_loss(y_test, proba),

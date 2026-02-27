@@ -14,13 +14,13 @@ warnings.filterwarnings('ignore')
 
 
 def main():
-    print("🚀 Iniciando Pipeline de Trading Algorítmico - LoL Esports (LCK 2025)")
+    print("🚀 Starting Algorithmic Trading Pipeline - LoL Esports (LCK 2025)")
     print("-" * 75)
 
     dm = DataManager()
     raw_data = dm.load_data()
     lck_teams = dm.filter_lck(raw_data)
-    print(f"✔️ Datos cargados: {len(lck_teams)} filas de equipo LCK filtradas.")
+    print(f"✔️ Data loaded: {len(lck_teams)} LCK team rows filtered.")
 
     viz = Visualizer()
     viz.plot_eda(lck_teams)
@@ -51,7 +51,7 @@ def main():
     for col in feature_cols:
         match_df[col] = match_df[col].fillna(match_df[col].mean())
 
-    print(f"✔️ Feature Engineering completo. Dimensión: {match_df.shape}")
+    print(f"✔️ Feature Engineering complete. Shape: {match_df.shape}")
 
     mask_cup = match_df['split'] == 'Cup'
     mask_r12  = match_df['split'] == 'Rounds 1-2'
@@ -70,15 +70,15 @@ def main():
         for name, model in model_definitions.items()
     ]
     results_df = pd.DataFrame(results).sort_values('ROC-AUC', ascending=False)
-    print("\n--- Resultados Fold 2 (Rounds 3-5) ---")
+    print("\n--- Results Fold 2 (Rounds 3-5) ---")
     print(results_df.to_string(index=False))
 
-    best_name = results_df.iloc[0]['Modelo']
+    best_name = results_df.iloc[0]['Model']
     calibrated_model = trainer.calibrate(trainer.get_models()[best_name], X_f2_train, y_f2_train)
     cal_proba = calibrated_model.predict_proba(X_f2_test)[:, 1]
     raw_proba = model_definitions[best_name].predict_proba(X_f2_test)[:, 1]
 
-    print(f"\n✔️ Mejor Modelo: {best_name} → Calibración Platt Scaling aplicada.")
+    print(f"\n✔️ Best Model: {best_name} → Platt Scaling calibration applied.")
     viz.plot_calibration(y_f2_test, raw_proba, cal_proba, best_name)
 
     strat = BettingStrategy()
@@ -98,11 +98,11 @@ def main():
     })
 
     history, wins, losses, _ = strat.simulate_bankroll(bet_analysis)
-    print(f"\n--- Simulación de Gestión de Capital ---")
-    print(f"💰 Bankroll Inicial:     ${INITIAL_BANKROLL}")
-    print(f"💰 Bankroll Final:       ${history[-1]:.2f}")
-    print(f"📈 ROI Final:            {(history[-1] - INITIAL_BANKROLL) / INITIAL_BANKROLL:.1%}")
-    print(f"🎯 Win Rate de Apuestas: {wins / (wins + losses):.1%}")
+    print(f"\n--- Capital Management Simulation ---")
+    print(f"💰 Initial Bankroll:  ${INITIAL_BANKROLL}")
+    print(f"💰 Final Bankroll:    ${history[-1]:.2f}")
+    print(f"📈 Final ROI:         {(history[-1] - INITIAL_BANKROLL) / INITIAL_BANKROLL:.1%}")
+    print(f"🎯 Betting Win Rate:  {wins / (wins + losses):.1%}")
 
     viz.plot_bankroll(history, bet_analysis['ev'], EV_THRESHOLD)
 
@@ -110,7 +110,7 @@ def main():
     with open('lck_feature_cols.json', 'w') as f:
         json.dump(feature_cols, f)
 
-    print("\n✅ Pipeline finalizado. Artefactos guardados.")
+    print("\n✅ Pipeline finished. Artifacts saved.")
 
 
 if __name__ == "__main__":

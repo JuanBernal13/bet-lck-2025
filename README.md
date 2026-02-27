@@ -2,7 +2,7 @@
 
 # 📊 LCK Esports Betting Model · 2025
 
-### Sistema Algorítmico de Predicción y Gestión de Riesgo para League of Legends
+### Algorithmic Prediction & Risk Management System for League of Legends
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3+-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
@@ -10,164 +10,164 @@
 [![LightGBM](https://img.shields.io/badge/LightGBM-4.0+-02569B?style=flat-square)](https://lightgbm.readthedocs.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple?style=flat-square)](LICENSE)
 
-*Pipeline end-to-end de Data Science aplicado a mercados de apuestas deportivas (Esports).*
+*End-to-end Data Science pipeline applied to sports betting markets (Esports).*
 
 </div>
 
 ---
 
-## ¿Qué resuelve este proyecto?
+## What does this project solve?
 
-Los mercados de apuestas de Esports presentan **ineficiencias informacionales** que un modelo cuantitativo puede explotar sistemáticamente. Este sistema:
+Esports betting markets exhibit **informational inefficiencies** that a quantitative model can systematically exploit. This system:
 
-1. **Estima** la probabilidad real de victoria de cada equipo antes de que comience el partido.
-2. **Compara** esa probabilidad con la que implican las cuotas de la casa de apuestas.
-3. **Dimensiona** el tamaño de cada apuesta con el **Criterio de Kelly fraccional** para maximizar el crecimiento del capital a largo plazo y controlar el drawdown.
+1. **Estimates** the true win probability of each team before the match begins.
+2. **Compares** that probability against the implied probability from the bookmaker's odds.
+3. **Sizes** each bet using the **Fractional Kelly Criterion** to maximize long-term capital growth while controlling drawdown.
 
-El objetivo no es predecir quién gana, sino encontrar partidas donde la probabilidad del modelo supere sistemáticamente a la probabilidad implícita del mercado (**+EV**).
+The goal is not to predict who wins, but to find matches where the model's probability systematically exceeds the market's implied probability (**+EV**).
 
 ---
 
-## 🏗️ Arquitectura del Proyecto
+## 🏗️ Project Architecture
 
 ```
 bets-lck-2025/
-├── main.py                  # Orquestador del pipeline completo
-├── lol_esports.ipynb        # Exploración original e iteración de ideas
+├── main.py                  # Full pipeline orchestrator
+├── lol_esports.ipynb        # Original exploration and idea iteration
 └── src/
-    ├── config.py            # Hiperparámetros y constantes globales
-    ├── data_manager.py      # Ingesta y limpieza del dataset Oracle's Elixir
-    ├── features.py          # Feature Engineering temporal (rolling, streaks)
-    ├── models.py            # Definición, entrenamiento y calibración de modelos
-    ├── strategy.py          # Expected Value, Criterio de Kelly, simulación
-    └── visualization.py     # Reportes visuales premium
+    ├── config.py            # Hyperparameters and global constants
+    ├── data_manager.py      # Oracle's Elixir dataset ingestion and cleaning
+    ├── features.py          # Temporal Feature Engineering (rolling, streaks)
+    ├── models.py            # Model definition, training, and calibration
+    ├── strategy.py          # Expected Value, Kelly Criterion, simulation
+    └── visualization.py     # Premium visual reports
 ```
 
 ---
 
-## 🔬 Pipeline Técnico
+## 🔬 Technical Pipeline
 
-### 1 · Datos
+### 1 · Data
 
-- **Fuente:** [Oracle's Elixir](https://oracleselixir.com/) — dataset oficial de estadísticas profesionales de LoL.
-- **Liga:** LCK (League of Legends Champions Korea) · Temporada 2025.
-- **Alcance:** 555 partidas únicas · 10 equipos · 3 splits (Cup, Rounds 1-2, Rounds 3-5).
-- **Granularidad:** Una fila de equipo por partida (12 filas totales por partida: 10 jugadores + 2 equipos). El modelo trabaja exclusivamente con las **filas de equipo**.
+- **Source:** [Oracle's Elixir](https://oracleselixir.com/) — official professional LoL statistics dataset.
+- **League:** LCK (League of Legends Champions Korea) · 2025 Season.
+- **Scope:** 555 unique matches · 10 teams · 3 splits (Cup, Rounds 1-2, Rounds 3-5).
+- **Granularity:** One team row per match (12 total rows per match: 10 players + 2 teams). The model works exclusively with **team-level rows**.
 
-### 2 · Feature Engineering (sin Data Leakage)
+### 2 · Feature Engineering (Leak-Free)
 
-La regla fundamental: **ninguna feature puede contener información del partido que se está prediciendo.**
+The fundamental rule: **no feature can contain information from the match being predicted.**
 
-Todas las métricas de rendimiento se calculan con `shift(1)` sobre la serie temporal del equipo, garantizando que el modelo solo ve el historial anterior al partido en cuestión.
+All performance metrics are computed with `shift(1)` over each team's time series, ensuring the model only sees history prior to the match in question.
 
-| Tipo | Features | Ventanas |
-|------|----------|----------|
+| Type | Features | Windows |
+|------|----------|---------|
 | **Rolling stats** | Win rate, Gold diff@15, Gold diff@25, Dragons, Barons, Towers, Earned GPM, GSPD, Vision Score, CKPM, Void Grubs | W = {3, 5, 10} |
-| **Momentum** | Win streak (racha acumulada con signo) | — |
-| **Fatiga/Descanso** | Días desde la última partida | — |
-| **Tendencia** | Win rate acumulado de la temporada | — |
-| **Meta-game** | Parche (ordinal), Lado (Blue/Red), Playoffs flag, Split | — |
+| **Momentum** | Win streak (signed cumulative streak) | — |
+| **Fatigue/Rest** | Days since last match | — |
+| **Trend** | Season cumulative win rate | — |
+| **Meta-game** | Patch (ordinal), Side (Blue/Red), Playoffs flag, Split | — |
 
-**Diferenciales (Blue − Red):** Para cada feature, se calcula el diferencial entre ambos equipos. Son los predictores más informativos porque normalizan el rendimiento absoluto contra la línea base del oponente.
+**Differentials (Blue − Red):** For each feature, the differential between both teams is computed. These are the most informative predictors as they normalize absolute performance against the opponent's baseline.
 
-**Total de features:** 120 columnas en el dataset match-level final.
+**Total features:** 120 columns in the final match-level dataset.
 
-### 3 · Validación Cruzada Temporal (Time-Aware)
+### 3 · Time-Aware Cross-Validation
 
-El k-fold estándar introduce **data leakage temporal** al mezclar partidas pasadas y futuras. Se usan **splits cronológicos expandibles**:
+Standard k-fold introduces **temporal data leakage** by mixing past and future matches. Instead, **expanding chronological splits** are used:
 
 ```
-Fold 1 │ Train: Cup (109 partidas)              → Test: Rounds 1-2 (240 partidas)
-Fold 2 │ Train: Cup + Rounds 1-2 (349 partidas) → Test: Rounds 3-5 (206 partidas) ← evaluación principal
+Fold 1 │ Train: Cup (109 matches)              → Test: Rounds 1-2 (240 matches)
+Fold 2 │ Train: Cup + Rounds 1-2 (349 matches) → Test: Rounds 3-5 (206 matches) ← primary evaluation
 ```
 
-### 4 · Algoritmos de Machine Learning
+### 4 · Machine Learning Algorithms
 
-| Algoritmo | Descripción | Regularización |
+| Algorithm | Description | Regularization |
 |-----------|-------------|----------------|
-| **Logistic Regression** | Clasificador lineal con penalización L₂. Baseline interpretable. | `C=0.1` (fuerte) |
-| **Random Forest** | 200 árboles con bootstrap. Robusto a no-linealidades. | `max_depth=4`, `min_samples_leaf=10` |
-| **XGBoost** | Gradient Boosting con Taylor expansion de 2° orden. | `reg_alpha=1.0`, `reg_lambda=2.0` |
-| **LightGBM** | GBM optimizado con GOSS + EFB para datasets categóricos. | `num_leaves=15`, `min_child_samples=15` |
+| **Logistic Regression** | Linear classifier with L₂ penalty. Interpretable baseline. | `C=0.1` (strong) |
+| **Random Forest** | 200 trees with bootstrap. Robust to non-linearities. | `max_depth=4`, `min_samples_leaf=10` |
+| **XGBoost** | Gradient Boosting with 2nd-order Taylor expansion. | `reg_alpha=1.0`, `reg_lambda=2.0` |
+| **LightGBM** | GBM optimized with GOSS + EFB for categorical datasets. | `num_leaves=15`, `min_child_samples=15` |
 
-### 5 · Calibración de Probabilidades
+### 5 · Probability Calibration
 
-Los modelos de ensamble tienden a producir probabilidades **mal calibradas** (típicamente comprimidas hacia el centro). Para apuestas esto es crítico: si el modelo dice "60%" pero en realidad ocurre el 70% de las veces, la estrategia de Kelly dimensionará mal cada apuesta.
+Ensemble models tend to produce **poorly calibrated** probabilities (typically compressed toward the center). For betting, this is critical: if the model says "60%" but it actually happens 70% of the time, the Kelly strategy will mis-size every bet.
 
-**Platt Scaling** ajusta una transformación sigmoide sobre la salida raw del modelo:
+**Platt Scaling** fits a sigmoid transformation on the model's raw output:
 
 ```
-p_calibrada = 1 / (1 + exp(−(α·f(x) + β)))
+p_calibrated = 1 / (1 + exp(−(α·f(x) + β)))
 ```
 
-Los parámetros `α` y `β` se estiman minimizando la log-loss mediante 5-fold CV interno (`CalibratedClassifierCV`).
+Parameters `α` and `β` are estimated by minimizing log-loss via 5-fold internal CV (`CalibratedClassifierCV`).
 
 ---
 
-## 📈 Resultados (Fold 2 · Rounds 3-5)
+## 📈 Results (Fold 2 · Rounds 3-5)
 
-### Métricas comparativas
+### Comparative Metrics
 
-| Modelo | Accuracy | ROC-AUC | Log Loss | Brier Score |
-|--------|----------|---------|----------|-------------|
+| Model | Accuracy | ROC-AUC | Log Loss | Brier Score |
+|-------|----------|---------|----------|-------------|
 | Random Forest | 0.558 | **0.640** | 0.675 | — |
 | LightGBM | 0.578 | 0.634 | 0.758 | — |
 | XGBoost | 0.544 | 0.620 | 0.752 | — |
 | Logistic Regression | 0.515 | 0.608 | 0.738 | — |
-| **Random Forest Calibrado** | — | **0.644** | 0.676 | **0.242** |
+| **Calibrated Random Forest** | — | **0.644** | 0.676 | **0.242** |
 
-> ℹ️ Un ROC-AUC de 0.64 es **competitivo** para modelos pre-partida sin datos de draft (composición de campeones), que es el factor de mayor peso informacional no capturado.
+> ℹ️ A ROC-AUC of 0.64 is **competitive** for pre-match models without draft data (champion composition), which is the highest-weight informational factor not captured.
 
-### Simulación de Bankroll (Quarter-Kelly · EV > 3%)
+### Bankroll Simulation (Quarter-Kelly · EV > 3%)
 
-| Métrica | Valor |
-|---------|-------|
-| Partidas evaluadas | 206 |
-| Apuestas ejecutadas | 57 (27.7%) |
-| Win Rate de apuestas | 43.9% |
-| Bankroll inicial | $1,000 |
-| Bankroll final | $825.56 |
+| Metric | Value |
+|--------|-------|
+| Matches evaluated | 206 |
+| Bets executed | 57 (27.7%) |
+| Betting win rate | 43.9% |
+| Initial bankroll | $1,000 |
+| Final bankroll | $825.56 |
 | ROI | −17.4% |
 
-> ⚠️ **Nota importante:** Las odds usadas en la simulación son **sintéticas** (generadas con ruido gaussiano + 5% de vig). El ROI negativo refleja la dificultad de superar el margen de la casa con un modelo sin datos de draft. El valor de este sistema está en su arquitectura, no en las cifras de la simulación con odds artificiales.
+> ⚠️ **Important note:** The odds used in the simulation are **synthetic** (generated with Gaussian noise + 5% vig). The negative ROI reflects the difficulty of overcoming the house edge with a model lacking draft data. The value of this system lies in its architecture, not in the simulation figures with artificial odds.
 
 ---
 
-## 💡 Decisiones de Diseño
+## 💡 Design Decisions
 
-- **¿Por qué `shift(1)` y no simplemente excluir la columna target?**  
-  El leakage en series temporales de equipos ocurre también en las métricas de rendimiento: si incluyes el resultado del partido actual en el cálculo de la media, contaminas todas las features del mismo partido.
+- **Why `shift(1)` instead of simply excluding the target column?**  
+  Leakage in team time series also occurs in performance metrics: if you include the current match result in the rolling mean calculation, you contaminate all features for that same match.
 
-- **¿Por qué Quarter-Kelly y no Kelly completo?**  
-  El Kelly completo asume que $\hat{p}$ es exactamente la probabilidad verdadera. En la práctica, cualquier error de estimación amplifica el riesgo de ruina (**Kelly Criterion's curse**). El factor 0.25 absorbe la incertidumbre del modelo.
+- **Why Quarter-Kelly instead of full Kelly?**  
+  Full Kelly assumes that $\hat{p}$ is exactly the true probability. In practice, any estimation error amplifies the risk of ruin (**Kelly Criterion's curse**). The 0.25 factor absorbs model uncertainty.
 
-- **¿Por qué Platt Scaling y no Isotonic Regression?**  
-  Isotonic Regression requiere muchos datos para la curva de calibración. Con ~350 partidas de entrenamiento, Platt Scaling (2 parámetros) es más estable y menos propensa a overfitting.
+- **Why Platt Scaling instead of Isotonic Regression?**  
+  Isotonic Regression requires a large amount of data for the calibration curve. With ~350 training matches, Platt Scaling (2 parameters) is more stable and less prone to overfitting.
 
 ---
 
-## 🚀 Uso
+## 🚀 Usage
 
-### Requisitos
+### Requirements
 
 ```bash
 pip install pandas numpy scikit-learn xgboost lightgbm matplotlib seaborn joblib
 ```
 
-### Ejecución
+### Running
 
 ```bash
-# Coloca el archivo CSV de Oracle's Elixir en la raíz del proyecto
+# Place the Oracle's Elixir CSV file in the project root
 python main.py
 ```
 
-El pipeline generará automáticamente:
-1. Gráficas de EDA (win rates, correlaciones)
-2. Reliability diagram de calibración
-3. Curvas ROC comparativas
-4. Simulación de bankroll con distribución de EV
+The pipeline will automatically generate:
+1. EDA plots (win rates, correlations)
+2. Calibration reliability diagram
+3. Comparative ROC curves
+4. Bankroll simulation with EV distribution
 
-### Usar el modelo serializado
+### Using the Serialized Model
 
 ```python
 import joblib, json
@@ -180,9 +180,9 @@ prob_blue_wins = model.predict_proba(X_new[cols])[:, 1]
 ```
 
 
-## 📦 Datos
+## 📦 Data
 
-El dataset no se incluye en el repositorio por su tamaño (~80 MB). Descárgalo directamente desde [Oracle's Elixir — 2025 Match Data](https://oracleselixir.com/tools/downloads) y colócalo en la raíz del proyecto con el nombre:
+The dataset is not included in the repository due to its size (~80 MB). Download it directly from [Oracle's Elixir — 2025 Match Data](https://oracleselixir.com/tools/downloads) and place it in the project root with the name:
 
 ```
 2025_LoL_esports_match_data_from_OraclesElixir.csv
