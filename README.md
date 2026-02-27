@@ -179,17 +179,6 @@ with open('lck_feature_cols.json') as f:
 prob_blue_wins = model.predict_proba(X_new[cols])[:, 1]
 ```
 
----
-
-## 🗺️ Roadmap
-
-- [ ] **Integración de odds reales** vía API (Pinnacle, The Odds API)
-- [ ] **Features de draft** — embeddings de composiciones de campeones por rol
-- [ ] **Modelo Elo / Glicko** como feature adicional de rating relativo
-- [ ] **Walk-forward backtest** con recalibración dinámica por parche
-- [ ] **Dashboard interactivo** (Streamlit / Dash) para predicciones en vivo
-
----
 
 ## 📦 Datos
 
