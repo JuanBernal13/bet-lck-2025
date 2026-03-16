@@ -1,6 +1,6 @@
 <div align="center">
 
-#LCK Esports Betting Model · 2025
+# LCK Esports Betting Model · 2025
 
 ### Algorithmic Prediction & Risk Management System for League of Legends
 
