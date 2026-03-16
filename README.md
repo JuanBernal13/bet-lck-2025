@@ -1,16 +1,10 @@
 <div align="center">
 
-# 📊 LCK Esports Betting Model · 2025
+#LCK Esports Betting Model · 2025
 
 ### Algorithmic Prediction & Risk Management System for League of Legends
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3+-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
-[![XGBoost](https://img.shields.io/badge/XGBoost-1.7+-4CAF50?style=flat-square)](https://xgboost.readthedocs.io)
-[![LightGBM](https://img.shields.io/badge/LightGBM-4.0+-02569B?style=flat-square)](https://lightgbm.readthedocs.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-purple?style=flat-square)](LICENSE)
 
-*End-to-end Data Science pipeline applied to sports betting markets (Esports).*
 
 </div>
 
@@ -28,7 +22,7 @@ The goal is not to predict who wins, but to find matches where the model's proba
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 ```
 bets-lck-2025/
@@ -104,7 +98,7 @@ Parameters `α` and `β` are estimated by minimizing log-loss via 5-fold interna
 
 ---
 
-## 📈 Results (Fold 2 · Rounds 3-5)
+## Results (Fold 2 · Rounds 3-5)
 
 ### Comparative Metrics
 
@@ -116,7 +110,6 @@ Parameters `α` and `β` are estimated by minimizing log-loss via 5-fold interna
 | Logistic Regression | 0.515 | 0.608 | 0.738 | — |
 | **Calibrated Random Forest** | — | **0.644** | 0.676 | **0.242** |
 
-> ℹ️ A ROC-AUC of 0.64 is **competitive** for pre-match models without draft data (champion composition), which is the highest-weight informational factor not captured.
 
 ### Bankroll Simulation (Quarter-Kelly · EV > 3%)
 
@@ -128,8 +121,6 @@ Parameters `α` and `β` are estimated by minimizing log-loss via 5-fold interna
 | Initial bankroll | $1,000 |
 | Final bankroll | $825.56 |
 | ROI | −17.4% |
-
-> ⚠️ **Important note:** The odds used in the simulation are **synthetic** (generated with Gaussian noise + 5% vig). The negative ROI reflects the difficulty of overcoming the house edge with a model lacking draft data. The value of this system lies in its architecture, not in the simulation figures with artificial odds.
 
 ---
 
@@ -146,7 +137,7 @@ Parameters `α` and `β` are estimated by minimizing log-loss via 5-fold interna
 
 ---
 
-## 🚀 Usage
+## Usage
 
 ### Requirements
 
@@ -180,7 +171,7 @@ prob_blue_wins = model.predict_proba(X_new[cols])[:, 1]
 ```
 
 
-## 📦 Data
+## Data
 
 The dataset is not included in the repository due to its size (~80 MB). Download it directly from [Oracle's Elixir — 2025 Match Data](https://oracleselixir.com/tools/downloads) and place it in the project root with the name:
 
